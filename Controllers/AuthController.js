@@ -42,10 +42,18 @@ export const loginUser = async (req, res) => {
 		if (user) {
 			const validity = await bcrypt.compare(password, user.password);
 
-			if (validity) {
-				res.status(200).json(user);
-			} else {
+			if (!validity) {
 				res.status(401).send('Invalid login or password');
+			} else {
+				const token = jwt.sign(
+					{
+						userName: user.userName,
+						id: user._id,
+					},
+					process.env.JWT_KEY,
+					{ expiresIn: '1h' }
+				);
+				res.status(200).json({ user, token });
 			}
 		} else {
 			res.status(401).send('Invalid login or password');
